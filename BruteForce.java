@@ -149,9 +149,23 @@ public class BruteForce{
 	 	 				
 	 	 		// strongest freq
 	 	 		Iterator it = result.entrySet().iterator();
-	 	 		Map.Entry first = (Map.Entry)it.next();
-	 	 		return (LinkedList<String>) first.getKey();
-	 	 				
+	 	 		
+	 	 		hset.remove(Collections.singleton(null));
+				hset = null;
+				newhits.removeAll(Collections.singleton(null));
+				newhits = null;
+		 		connectPath.removeAll(Collections.singleton(null));
+		 		connectPath = null;
+		 		
+	 	 		if(it.hasNext()){
+		 	 		Map.Entry first = (Map.Entry)it.next();		
+		 	 		result.clear();
+			 		result = null;
+			 		System.out.println((LinkedList<String>) first.getKey());
+		 	 		return (LinkedList<String>) first.getKey();
+	 	 		}
+	 	 		result.clear();
+	 	 		result = null;	
 	 	 	}
 	 	 	
 		}
@@ -160,6 +174,8 @@ public class BruteForce{
 			System.out.print(querystr1+" ");
 			System.out.println(querystr2);
 		}
+		connectPath.removeAll(Collections.singleton(null));
+ 		connectPath = null;
 		return null;
 	}
 	
@@ -222,9 +238,10 @@ public class BruteForce{
 				    	shortSize = singlePath.size();
 				    }
 				    else{
+				    	singlePath = null;
 				    	return;
 				    }
-				    
+				    singlePath = null;
 		    		//return;
 		    	}
 		    	else{
@@ -263,14 +280,23 @@ public class BruteForce{
 				    		queue.add(new_path);
 			    		}
 			    	} 	
-			    	
+			    	cooperators.removeAll(Collections.singleton(null));
+			    	cooperators = null;
 		    	}
 			}
+	
 		}
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
+			System.out.println(root.name);
+			System.out.println(querystr2);
 		}
+		
+		queue.removeAll(Collections.singleton(null));
+		queue = null;
+		start_path.removeAll(Collections.singleton(null));
+		start_path = null;
 	}
 	
 	/*******************************************************

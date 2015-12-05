@@ -156,17 +156,35 @@ public class MLsearch{
 				Map<LinkedList<String>, Integer> result = new HashMap<LinkedList<String>, Integer>(hset);
 				result = MapUtil.sortByValue( result );
 				
+				hset.remove(Collections.singleton(null));
+				hset = null;
+				newhits.removeAll(Collections.singleton(null));
+				newhits = null;
+		 		connectPath.removeAll(Collections.singleton(null));
+		 		connectPath = null;
+		 			 		
 				// strongest freq
 				Iterator it = result.entrySet().iterator();
-				Map.Entry first = (Map.Entry)it.next();
-				return (LinkedList<String>) first.getKey();
+				if(it.hasNext()){
+					Map.Entry first = (Map.Entry)it.next();
+					
+					result.clear();
+					result = null;
 				
+					return (LinkedList<String>) first.getKey();
+				}
+				result.clear();
+				result = null;
 			}
+			keywords = null;
+			connectPath.removeAll(Collections.singleton(null));
+			connectPath = null;
 		    
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
 		}
+		
 		return null;
 	}
 	
@@ -212,9 +230,10 @@ public class MLsearch{
 				    	shortSize = singlePath.size();
 				    }
 				    else{
+				    	singlePath = null;
 				    	return;
 				    }
-				    
+				    singlePath = null;
 		    		//return;
 		    	}
 		    	else{
@@ -232,7 +251,9 @@ public class MLsearch{
 					    }
 					    
 					    neighborAuthors.add(cooperators.get(j));  // add all neighbor into candidate	    		
-			    	} 				    	
+			    	} 
+			    	cooperators.removeAll(Collections.singleton(null));
+			    	cooperators = null;
 		    	}
 			}
 			
@@ -246,9 +267,17 @@ public class MLsearch{
 			}
 				
 		}
+		
+		queue.removeAll(Collections.singleton(null));
+		queue = null;
+		start_path.removeAll(Collections.singleton(null));
+		start_path = null;
+		
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
+			System.out.println(root.name);
+			System.out.println(querystr2);
 		}
 	}
 	

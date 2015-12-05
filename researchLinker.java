@@ -100,19 +100,37 @@ public class researchLinker
 				createTest testInput = new createTest();
 				ArrayList<ArrayList<String>> author_pairs = testInput.create_authorPair(author_affiliation);
 				
-				// evaluate width
-				for(int i=2; i<=10; i=i+2){
-					int depth = 5; 
-					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ew"+(i/2),depth,i,QueryNUM, author_pairs,papers);
-					R.start();
-				}
+//				// evaluate width
+//				for(int i=2; i<=10; i=i+2){
+//					int depth = 5; 
+//					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ew"+(i/2),depth,i,QueryNUM, author_pairs,papers);
+//					R.start();
+//				}
+//				
+//				// evaluate depth
+//				for(int i=1; i<=5; i++){
+//					int width = 10;
+//					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ed"+i,i,width,QueryNUM, author_pairs,papers);
+//					R.start();
+//				}	
 				
-				// evaluate depth
-				for(int i=1; i<5; i++){
-					int width = 10;
-					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ed"+i,i,width,QueryNUM, author_pairs,papers);
-					R.start();
-				}			
+				// test individual
+				Evaluate evaObj = new Evaluate();
+				int depth = 5;
+				int width = 8;
+				evaObj.setDepth(depth);
+				evaObj.setWidth(width);
+				evaObj.settestQueryNUM(QueryNUM);
+				
+				double accuarcy = evaObj.evaluate_basic_accuracy(papers, author_pairs);
+				System.out.print("width "+width+" dpth "+depth+" -- ");
+				System.out.println("accuracy: "+accuarcy);
+				
+//				double performance = evaObj.evaluate_basic_performance(papers, author_pairs);
+//				System.out.print("width "+width+" dpth "+depth+" -- ");
+//				System.out.println("performance: "+performance);
+				
+				author_pairs = null;
 			}		 
 		}
 		catch(Exception e)

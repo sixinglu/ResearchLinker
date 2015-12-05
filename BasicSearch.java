@@ -126,10 +126,24 @@ public class BasicSearch{
 	 		Map<LinkedList<String>, Integer> result = new HashMap<LinkedList<String>, Integer>(hset);
 	 		result = MapUtil.sortByValue( result );
 	 				
-	 		// strongest freq
+ 	 		
+ 	 		hset.remove(Collections.singleton(null));
+			hset = null;
+			newhits.removeAll(Collections.singleton(null));
+			newhits = null;
+	 		connectPath.removeAll(Collections.singleton(null));
+	 		connectPath = null;
+	 		
+	 	    // strongest freq
 	 		Iterator it = result.entrySet().iterator();
-	 		Map.Entry first = (Map.Entry)it.next();
-	 		return (LinkedList<String>) first.getKey();
+	 		if(it.hasNext()){
+	 		   Map.Entry first = (Map.Entry)it.next();
+	 		   result.clear();
+	 		   result = null;
+		 	   return (LinkedList<String>) first.getKey();
+	 		}
+	 		result.clear();
+	 		result = null;
 	 				
 	 	}
 	    	
@@ -139,6 +153,8 @@ public class BasicSearch{
 			System.out.print(querystr1+" ");
 			System.out.println(querystr2);
 		}
+	    connectPath.removeAll(Collections.singleton(null));
+	    connectPath = null;
 	    return null;
 	}
 	
@@ -193,8 +209,10 @@ public class BasicSearch{
 				    	shortSize = singlePath.size();
 				    }
 				    else{
+				    	singlePath = null;
 				    	return;
 				    }
+				    singlePath = null;
 		    	}
 		    	else{
 		    		List<String> cooperators = new ArrayList<String>();
@@ -232,14 +250,22 @@ public class BasicSearch{
 				    		queue.add(new_path);
 			    		}
 			    	} 	
-			    	
+			    	cooperators.removeAll(Collections.singleton(null));
+			    	cooperators = null;
 		    	}
 			}
-		}
+		}	
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
+			System.out.println(root.name);
+			System.out.println(querystr2);
 		}
+		
+		queue.removeAll(Collections.singleton(null));
+		queue = null;
+		start_path.removeAll(Collections.singleton(null));
+		start_path = null;
 	}
 	
 	private static void addDoc(IndexWriter w, String title, String author, String afffiliation, String publishtime, String summary) throws IOException 

@@ -22,17 +22,17 @@ each published time separated by <published></published>
 =====================================
 
 Basic Search USAGE: 
-java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -b 'workfile' 'keywords' 'authorA' 'authorB'
+java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -b 'workfile' 'keywords' 'R. P. Hardikar' 'S. Mazumdar'
 
 Machine Learning Search UASGE:
-java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -m 'workfile' 'keywords' 'authorA' 'authorB'
+java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -m 'workfile' 'keywords' 'R. P. Hardikar' 'S. Mazumdar'
 
-Generate ML training data:
-java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -g 'workfile' 'keywords' 'authorA' 'authorB'
+Generate ML training data UASGE:
+java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -g 'workfile' 'keywords' 'R. P. Hardikar' 'S. Mazumdar'
 
-BruteForce ML correct answers for all combination:  (it takes very long time to run)
-java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -t 'workfile' 'keywords' 'authorA' 'authorB'
+BruteForce ML correct answers for all combination UASGE:  (it takes very long time to run)
+java —Xmx6144m -Xincgc cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -t 'workfile' 'keywords' 'R. P. Hardikar' 'S. Mazumdar'
 
-Evaluate with 100 combinations: (‘authorA' 'authorB' does not matter, combination generate randomly)
-java -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -e 'workfile' 'keywords' 'H. Howe' 'S. Mazumdar'
+Evaluate with 100 combinations UASGE: (‘authorA' 'authorB' does not matter, combination generate randomly. This also takes long time and memory to run, I use multiple threads)
+java —Xmx6144m -Xincgc -cp .:combinatoricslib-2.1.jar:lucene-analyzers-common-5.3.1.jar:lucene-core-5.3.1.jar:lucene-queryparser-5.3.1.jar researchLinker -e 'workfile' 'keywords' 'R. P. Hardikar' 'S. Mazumdar'
 

@@ -63,7 +63,15 @@ public class Evaluate{
 				if(basic.equals(brute)){
 					accuracy++;
 				}
-			}	
+				
+				querystr1 = null;
+				querystr2 = null;
+				basicPath = null;
+				bruteForce = null;				
+			}
+			
+			basic_search = null;
+			accur_search = null;
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
@@ -87,10 +95,16 @@ public class Evaluate{
 				int randomNum = 0 + (int)(Math.random()*author_pairs.size()); 
 				String querystr1 = author_pairs.get(randomNum).get(0);
 				String querystr2 = author_pairs.get(randomNum).get(1);
-				LinkedList<String> basicPath= basic_search.basicSearch(querystr1,querystr2);
+				basic_search.basicSearch(querystr1,querystr2);
+				
+				querystr1 = null;
+				querystr2 = null;
 			}	
 			long end = System.nanoTime();
 			performance = (end-start)/testQueryNUM;
+			
+			basic_search = null;
+			
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
@@ -138,7 +152,17 @@ public class Evaluate{
 				if(ML.equals(brute)){
 					accuracy_ML++;
 				}
-			}	
+				
+				basicPath = null;
+				bruteForce = null;
+				MLPath = null;
+				querystr1 = null;
+				querystr2 = null;
+			}
+			
+			basic_search = null;
+			accur_search = null;
+			
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());

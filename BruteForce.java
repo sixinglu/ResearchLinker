@@ -279,6 +279,7 @@ public class BruteForce{
 				    		new_path.add(newnode);
 				    		queue.add(new_path);
 			    		}
+			    		collector = null;
 			    	} 	
 			    	cooperators.removeAll(Collections.singleton(null));
 			    	cooperators = null;

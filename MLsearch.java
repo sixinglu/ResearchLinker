@@ -45,7 +45,7 @@ public class MLsearch{
 	Integer shortest; // only print shortest path so far
 	LinkedList<String> shortestPath;
 	
-	private Integer intervalNO = 4;
+	private Integer intervalNO = 1;
 
 	
 	MLsearch(Integer d, Integer wid, ArrayList<ArrayList<String>> papers) throws IOException{
@@ -92,11 +92,11 @@ public class MLsearch{
 	 * @throws IOException 
 	 * @throws ParseException 
 	 ******************************************************/
-	public LinkedList<String> machinelearningSearch(String querystr1,String querystr2, String mintime, String maxtime, String keywordsfile) throws IOException, ParseException{
+	public LinkedList<String> machinelearningSearch(String querystr1,String querystr2, String mintime, String maxtime, String keywordsfile, String MLcoeff) throws IOException, ParseException{
 		
 		try{
 			
-			// prepare
+			// read keywords
 			ArrayList<String> keywords = new ArrayList<String>();
 			if(!keywordsfile.equals("")){
 				BufferedReader words = null;
@@ -120,6 +120,48 @@ public class MLsearch{
 				}
 			}
 			
+			// read machine learning coeff
+			ArrayList<String> coeffstring = new ArrayList<String>();
+			if(!keywordsfile.equals("")){
+				BufferedReader coeff = null;
+				try {
+					String Currentdoc;
+					coeff = new BufferedReader(new FileReader(MLcoeff));
+					while ((Currentdoc = coeff.readLine()) != null) {
+						coeffstring.add(Currentdoc.toLowerCase());		
+					}
+				} 
+				catch (IOException e) {
+					e.printStackTrace();
+				} 
+				finally {
+					try {
+						if (coeff != null) coeff.close();
+					} 
+					catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}
+			}
+			ArrayList<Float> coeffFloat = new ArrayList<Float>();
+			Float zero = (float) 0;
+			for(int i=1; i<coeffstring.size(); i++){  // first is (Intercept)
+				List<String> words= new ArrayList<String>();
+				words =Arrays.asList(coeffstring.get(i).split("\\s+"));
+				for(int j=0; j<words.size();j++){
+					words.get(j).replaceAll("\\s+", "");
+					//System.out.println(words.get(j).indexOf("v"));
+					if(words.get(j).isEmpty()==false && words.get(j).indexOf("v")==-1){
+						if(words.get(j).indexOf("na")!=-1){
+							coeffFloat.add(zero);
+						}
+						else{
+							coeffFloat.add( Float.parseFloat(words.get(j)) );
+						}
+					}
+				}
+			}		
+			
 			LinkedList<LinkedList<String>> connectPath = new LinkedList<LinkedList<String>>();
 			TopScoreDocCollector collector = TopScoreDocCollector.create(width);
 		    Query q = qp.parse(querystr1);
@@ -127,20 +169,20 @@ public class MLsearch{
 		    ScoreDoc[] hits = collector.topDocs().scoreDocs;
 		    LinkedList<ScoreDoc> newhits = new LinkedList<ScoreDoc>();
 		    
-		    // for machine learning training, must get rid of the paper does not contain exactly the same spelling withe the query
 		    for(int i=0;i<hits.length;i++) 
 			{
 		       int docId = hits[i].doc;
 		       
 		    // can comment out this part of code when evaluate the brute force itself.
-//		       Document d = searcher.doc(docId);
-//		       if(d.get("author").contains(querystr1)){
+		       //Document d = searcher.doc(docId);
+		      // System.out.println("debug: "+d.get("author"));
+		       //if(d.get("author").contains(querystr1)){
 		    	   newhits.add(hits[i]);
-//		       }
+		       //}
 		    } 
 		    Node root = new Node(querystr1,newhits);
 		    
-		    FindClosest( root,  querystr2,  mintime,  maxtime,connectPath, keywords);
+		    FindClosest( root,  querystr2,  mintime,  maxtime,connectPath, keywords, coeffFloat);
 		    
 			// rank results
 			if(connectPath.size()!=0){
@@ -162,6 +204,8 @@ public class MLsearch{
 				newhits = null;
 		 		connectPath.removeAll(Collections.singleton(null));
 		 		connectPath = null;
+		 		coeffFloat.removeAll(Collections.singleton(null));
+		 		coeffFloat = null;
 		 			 		
 				// strongest freq
 				Iterator it = result.entrySet().iterator();
@@ -196,7 +240,7 @@ public class MLsearch{
 	 * @throws IOException 
 	 * @throws ParseException 
 	 ******************************************************/
-	private void FindClosest(Node root, String querystr2, String mintime, String maxtime,LinkedList<LinkedList<String>> connectPath,ArrayList<String> keywords) throws IndexOutOfBoundsException, IOException, ParseException{
+	private void FindClosest(Node root, String querystr2, String mintime, String maxtime,LinkedList<LinkedList<String>> connectPath,ArrayList<String> keywords, ArrayList<Float> coeffFloat) throws IndexOutOfBoundsException, IOException, ParseException{
 		Queue<LinkedList<Node>> queue = new LinkedList< LinkedList<Node> >();
 		LinkedList<Node> start_path = new LinkedList<Node>();
 		start_path.add(root);
@@ -257,7 +301,7 @@ public class MLsearch{
 		    	}
 			}
 			
-			Node next_target = MLselectAuthor(neighborAuthors, mintime,  maxtime, keywords);
+			Node next_target = MLselectAuthor(querystr2,neighborAuthors, mintime,  maxtime, keywords, coeffFloat);
 			if(next_target!=null){
 				// add the next target search node into Q
 				LinkedList<Node> new_path = new LinkedList<Node>(path);
@@ -288,11 +332,32 @@ public class MLsearch{
 	 * @throws IOException 
 	 * @throws ParseException 
 	 ******************************************************/
-	private Node MLselectAuthor(LinkedList<String> neighborAuthors,String mintime, String maxtime, ArrayList<String> keywords) throws ParseException, IOException{
+	private Node MLselectAuthor(String destination, LinkedList<String> neighborAuthors,String mintime, String maxtime, ArrayList<String> keywords, ArrayList<Float> coeffFloat) throws ParseException, IOException{
 		
 		// ML model, decide which node push into Q
-		int min_distance = Integer.MAX_VALUE;
+		float min_distance = Float.MAX_VALUE;
 	    Node next_target =null;
+	    
+	    // encode the destination author
+	    Query qD = qp.parse(destination);
+		TopScoreDocCollector collectorD = TopScoreDocCollector.create(width);
+		searcher.search(qD, collectorD); // Search
+		ScoreDoc[] hitsD = collectorD.topDocs().scoreDocs;
+		LinkedList<ScoreDoc> newhitsD = new LinkedList<ScoreDoc>();
+		ArrayList<String> summaryD = new ArrayList<String>();
+		ArrayList<String> timeD  = new ArrayList<String>();
+		for(int k=0; k<hitsD.length; k++){  
+			int docId = hitsD[k].doc;
+			Document d = searcher.doc(docId);
+			summaryD.add(d.get("summary"));
+			timeD.add(d.get("publishtime"));	
+			if(d.get("author").contains(destination)){  
+			     newhitsD.add(hitsD[k]);     
+			}    					
+		}
+	    ArrayList<ArrayList<Integer>> MLdestination = encodewithTime(summaryD, timeD, mintime, maxtime, keywords);
+	    
+	    // selecting neighbor
 	    for(String name:neighborAuthors){
 			Query q = qp.parse(name);
     		TopScoreDocCollector collector = TopScoreDocCollector.create(width);
@@ -305,31 +370,21 @@ public class MLsearch{
     			int docId = hits[k].doc;
     			Document d = searcher.doc(docId);
     			summary.add(d.get("summary"));
-    			time.add(d.get("published"));
+    			time.add(d.get("publishtime"));
     			
     			// for machine learning training, only add doc with author spelling exactly with query
     			//if(d.get("author").contains(name)){  
-    			     newhits.add(hits[k]);
-    			     
+    			     newhits.add(hits[k]);   			     
     			//}    					
     		}
     		if(newhits.size()>0){
-    			
     			ArrayList<ArrayList<Integer>> MLparameters = encodewithTime(summary, time, mintime, maxtime, keywords);
     			// calculate ML output
-    			int result =0;
-    			
-    			
-    			
-    			
-    			
-    			
-    			
-    			
-    			
-    			
-    			
-    			
+    			float result = coeffFloat.get(0);
+    			for(int i=0; i<MLparameters.get(0).size(); i++){
+    				result = result + MLparameters.get(0).get(i)*coeffFloat.get(i+1) + MLdestination.get(0).get(i)*coeffFloat.get(i+501) ;  // we only have one interval
+    			}
+    						
     			if(result<min_distance){
     				min_distance = result;
     				Node newnode = new Node(name,newhits);
@@ -338,6 +393,10 @@ public class MLsearch{
     		}
 			
 		}
+	    
+	    if(min_distance>depth){
+	    	return null;
+	    }
 	    
 	    return next_target;
 	}
@@ -363,13 +422,13 @@ public class MLsearch{
 	 * @throws ParseException 
 	 ******************************************************/
 	private ArrayList<ArrayList<Integer>> encodewithTime(ArrayList<String> summary, ArrayList<String> time, String mintime, String maxtime, ArrayList<String> keywords){
-		Integer MAXtime = Integer.parseInt(maxtime.substring(0,4)); 
+		Integer MAXtime = 0; 
 		Integer MINtime=  Integer.parseInt(mintime.substring(0,4));
 		Integer span = (MAXtime - MINtime)/intervalNO;
 		ArrayList<ArrayList<Integer>> Intervals = new ArrayList<ArrayList<Integer>>(); // four intervals
 		
 		// initilization
-		for(int k=0; k<intervalNO+1;k++){  
+		for(int k=0; k<intervalNO;k++){    // do not need to +1 when intervalNo =1, +1 is used to deal with floating interval 
 			 ArrayList<Integer> zeros = new ArrayList<Integer>();
 			 for(int p=0;p<keywords.size();p++){
 				 zeros.add(0);

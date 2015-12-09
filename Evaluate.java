@@ -115,16 +115,16 @@ public class Evaluate{
 	/*******************************************************
 	* compare accuracy between basic search and ML search
 	* @param documents, combination of authors, keywords
-	* @return accuracy improvement
+	* @return ML accuracy 
 	******************************************************/
-	public double evaluate_MLcompare_accuracy(ArrayList<ArrayList<String>> papers, ArrayList<ArrayList<String>> author_pairs, String mintime, String maxtime, String keywordsfile ) throws IOException, IndexOutOfBoundsException, ParseException{
-		double accuracy_basic = 0.0;	
+	public double evaluate_MLcompare_accuracy(ArrayList<ArrayList<String>> papers, ArrayList<ArrayList<String>> author_pairs, String mintime, String maxtime, String keywordsfile, String coeffFile ) throws IOException, IndexOutOfBoundsException, ParseException{
+		//double accuracy_basic = 0.0;	
 		double accuracy_ML = 0.0;
 		Integer setdepth =depth;
 		Integer setwidth =width; 
 		
 		try{
-			BasicSearch basic_search = new BasicSearch(setdepth,setwidth,papers);
+			//BasicSearch basic_search = new BasicSearch(setdepth,setwidth,papers);
 			BruteForce accur_search = new BruteForce(setdepth,setwidth,papers);
 			MLsearch mlsearch = new MLsearch(depth,width,papers);
 		
@@ -132,13 +132,13 @@ public class Evaluate{
 				int randomNum = 0 + (int)(Math.random()*author_pairs.size()); 
 				String querystr1 = author_pairs.get(randomNum).get(0);
 				String querystr2 = author_pairs.get(randomNum).get(1);
-				LinkedList<String> basicPath= basic_search.basicSearch(querystr1,querystr2);
+				//LinkedList<String> basicPath= basic_search.basicSearch(querystr1,querystr2);
 				LinkedList<String> bruteForce = accur_search.bruteforceSearch(querystr1,querystr2);
-				LinkedList<String> MLPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, keywordsfile);
+				LinkedList<String> MLPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, keywordsfile, coeffFile);
 				String basic = "", brute="", ML="";
-				if(basicPath!=null){
-					basic = basicPath.toString();
-				}
+//				if(basicPath!=null){
+//					basic = basicPath.toString();
+//				}
 				if(bruteForce!=null){
 					brute = bruteForce.toString();
 				}
@@ -146,41 +146,41 @@ public class Evaluate{
 					ML = MLPath.toString();
 				}
 				
-				if(basic.equals(brute)){
-					accuracy_basic++;
-				}
+//				if(basic.equals(brute)){
+//					accuracy_basic++;
+//				}
 				if(ML.equals(brute)){
 					accuracy_ML++;
 				}
 				
-				basicPath = null;
+				//basicPath = null;
 				bruteForce = null;
 				MLPath = null;
 				querystr1 = null;
 				querystr2 = null;
 			}
 			
-			basic_search = null;
+			//basic_search = null;
 			accur_search = null;
 			
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
 		}
-		return (accuracy_ML-accuracy_basic)/testQueryNUM;
+		return (accuracy_ML)/testQueryNUM;
 	}
 	
 	/*******************************************************
 	* compare spped between basic search and ML search
 	* @param documents, combination of authors, keywords
-	* @return speedup
+	* @return ML performance
 	******************************************************/
-	public double evaluate_MLcompare_speedup(ArrayList<ArrayList<String>> papers, ArrayList<ArrayList<String>> author_pairs, String mintime, String maxtime, String keywordsfile ) throws IOException, IndexOutOfBoundsException, ParseException{
-		double aver_basic = 0.0;	
-		double aver_ML = 0.0;
+	public double evaluate_MLcompare_speedup(ArrayList<ArrayList<String>> papers, ArrayList<ArrayList<String>> author_pairs, String mintime, String maxtime, String keywordsfile, String coeffFile ) throws IOException, IndexOutOfBoundsException, ParseException{
+//		double total_basic = 0.0;	
+		double total_ML = 0.0;
 		Integer setdepth =depth;
 		Integer setwidth =width; 
-		long start_basic =0;
+//		long start_basic =0;
 		long start_ML =0;
 		try{
 			BasicSearch basic_search = new BasicSearch(setdepth,setwidth,papers);
@@ -191,19 +191,19 @@ public class Evaluate{
 				String querystr1 = author_pairs.get(randomNum).get(0);
 				String querystr2 = author_pairs.get(randomNum).get(1);
 				
-				start_basic = System.nanoTime();
-				LinkedList<String> basicPath= basic_search.basicSearch(querystr1,querystr2);
-				aver_basic = (aver_basic+System.nanoTime()-start_basic)/i;
+//				start_basic = System.nanoTime();
+//				LinkedList<String> basicPath= basic_search.basicSearch(querystr1,querystr2);
+//				total_basic = total_basic + (System.nanoTime()-start_basic);
 				
 				start_ML = System.nanoTime();
-				LinkedList<String> MLPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, keywordsfile);
-				aver_ML = (aver_ML+System.nanoTime()-start_ML)/i;
+				LinkedList<String> MLPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, keywordsfile,coeffFile );
+				total_ML = total_ML + (System.nanoTime()-start_ML);
 			}	
 		}
 		catch(Exception e){
 			System.out.println(e.getMessage());
 		}
-		return aver_basic/aver_ML;
+		return total_ML/testQueryNUM;
 	}
 	
 	/*******************************************************
@@ -224,7 +224,7 @@ public class Evaluate{
 
 		    LinkedList<String> connectPath = accur_search.bruteforceSearch(querystr1,querystr2);
 			allCombination.println("-- "+querystr1+" -- "+querystr2+" --");
-			if(connectPath.size()!=0){
+			if(connectPath!=null){
 				allCombination.println(connectPath);
 			}
 			

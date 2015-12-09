@@ -49,9 +49,9 @@ public class researchLinker
 			readXML reading = new readXML();  
 			ArrayList<ArrayList<String>> papers = new ArrayList<ArrayList<String>>();
 	    	HashMap<String,String> author_affiliation = new HashMap<String,String>();
-	    	String mintime ="2018";
+	    	String mintime ="2018";  // the latest year 
 	    	String maxtime = "0";
-	    	if(args.length==5){
+	    	if(args.length>=5){
 	    		// if enable -g, will generate files for ML training
 	    		reading.readcitation(args[1], papers,author_affiliation,args[2],mintime, maxtime, args[0]); 
 	    	}
@@ -73,6 +73,7 @@ public class researchLinker
 				BasicSearch basic_search = new BasicSearch(depth,width,papers);
 				LinkedList<String> strongestPath= basic_search.basicSearch(querystr1,querystr2);
 				System.out.println(strongestPath);
+				return;
 			}
 		
 			// create correct answer for ML
@@ -83,6 +84,7 @@ public class researchLinker
 				evaObj.setDepth(5);
 				evaObj.setWidth(10);
 				evaObj.correctanswer(papers, author_pairs);
+				return;
 			}
 			
 			// ML search
@@ -90,45 +92,59 @@ public class researchLinker
 				Integer depth =5;
 				Integer width =10;
 				MLsearch mlsearch = new MLsearch(depth,width,papers);
-				LinkedList<String> strongestPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, args[2]);
+				LinkedList<String> strongestPath = mlsearch.machinelearningSearch(querystr1,querystr2, mintime, maxtime, args[2], args[5]);
 				System.out.println(strongestPath);
+				return;
 			}
 			
-			// evaluation
+			// evaluation, it takes very very long, and a lot of memory with multiple threads
 			if(args[0].equals("-e")){
 				int QueryNUM = 100;
 				createTest testInput = new createTest();
 				ArrayList<ArrayList<String>> author_pairs = testInput.create_authorPair(author_affiliation);
+							
+				// evaluate width
+				for(int i=2; i<=10; i=i+2){
+					int depth = 5; 
+					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ew"+(i/2),depth,i,QueryNUM, author_pairs,papers,args[2],args[5]);
+					R.start();
+				}
 				
-//				// evaluate width
-//				for(int i=2; i<=10; i=i+2){
-//					int depth = 5; 
-//					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ew"+(i/2),depth,i,QueryNUM, author_pairs,papers);
-//					R.start();
-//				}
+				// evaluate depth
+				for(int i=1; i<=5; i++){
+					int width = 10;
+					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ed"+i,i,width,QueryNUM, author_pairs,papers,args[2],args[5]);
+					R.start();
+				}	
+				
+				// test individual, beacuse multiple threads cost memory
+//				Evaluate evaObj = new Evaluate();
+//				int depth = 4;
+//				int width = 10;
+//				evaObj.setDepth(depth);
+//				evaObj.setWidth(width);
+//				evaObj.settestQueryNUM(QueryNUM);
+				
+//				// debug
+//				BruteForce accur_search = new BruteForce(depth,width,papers);
+//				System.out.print(accur_search.bruteforceSearch(querystr1,querystr2));
+				
+//				double accuarcy = evaObj.evaluate_basic_accuracy(papers, author_pairs);
+//				System.out.print("width "+width+" dpth "+depth+" -- ");
+//				System.out.println("accuracy: "+accuarcy);
 //				
-//				// evaluate depth
-//				for(int i=1; i<=5; i++){
-//					int width = 10;
-//					MultiThreadEvaluate R = new MultiThreadEvaluate("thread_ed"+i,i,width,QueryNUM, author_pairs,papers);
-//					R.start();
-//				}	
-				
-				// test individual
-				Evaluate evaObj = new Evaluate();
-				int depth = 5;
-				int width = 8;
-				evaObj.setDepth(depth);
-				evaObj.setWidth(width);
-				evaObj.settestQueryNUM(QueryNUM);
-				
-				double accuarcy = evaObj.evaluate_basic_accuracy(papers, author_pairs);
-				System.out.print("width "+width+" dpth "+depth+" -- ");
-				System.out.println("accuracy: "+accuarcy);
-				
 //				double performance = evaObj.evaluate_basic_performance(papers, author_pairs);
 //				System.out.print("width "+width+" dpth "+depth+" -- ");
 //				System.out.println("performance: "+performance);
+				
+//				double speedup = evaObj.evaluate_MLcompare_speedup(papers, author_pairs, "2018", "0",  args[2], args[5] );
+//				System.out.print("width "+width+" dpth "+depth+" -- ");
+//				System.out.println("speedup from ML: "+speedup);
+				
+//				double ml_accur = evaObj.evaluate_MLcompare_accuracy(papers, author_pairs, "2018", "0",  args[2], args[5] ) ;
+//				System.out.print("width "+width+" dpth "+depth+" -- ");
+//				System.out.println("accuracy for ML: "+ml_accur);
+				
 				
 				author_pairs = null;
 			}		 
